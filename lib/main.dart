@@ -1,121 +1,118 @@
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
-import 'database_helper.dart';
+import 'package:window_manager/window_manager.dart';
 
-void main() {
-  runApp(MyApp());
+void main() async {
+  // Window Options
+  WidgetsFlutterBinding.ensureInitialized();
+  await windowManager.ensureInitialized();
+  WindowOptions windowOptions = const WindowOptions(
+    size: Size(800, 600),
+    backgroundColor: Colors.transparent,
+    skipTaskbar: false,
+    titleBarStyle: TitleBarStyle.hidden,
+  );
+  windowManager.setResizable(false);
+  windowManager.waitUntilReadyToShow(windowOptions, () async {
+    await windowManager.show();
+    await windowManager.focus();
+  });
+
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text('Sunburst Chart'),
+      theme: ThemeData(
+        brightness: Brightness.dark,
+        primaryColor: Colors.black,
+      ),
+      home: const LandingPage(),
+    );
+  }
+}
+
+class LandingPage extends StatelessWidget {
+  const LandingPage({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'Darwin File Indexer Results',
         ),
-        body: SunburstChartWidget(),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.fromLTRB(100, 25, 100, 25),
+        child: Column(
+          // crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  Text(
+                    "Instructions",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+                  ),
+                  Text(
+                    "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Commodo ullamcorper a lacus vestibulum sed. Malesuada bibendum arcu vitae elementum curabitur. Amet tellus cras adipiscing enim. Volutpat lacus laoreet non curabitur gravida arcu ac.\n\n1. Jailbreak device\n2. Install a SSH client on the device\n3. Connect device to this device\n4. Enter the SSH",
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.fromLTRB(0, 25, 0, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "SSH Credentials",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+                  ),
+                  Row(
+                    children: const [
+                      SizedBox(
+                        width: 140,
+                        height: 50,
+                        child: TextField(
+                          decoration: InputDecoration(labelText: "IP Address"),
+                        ),
+                      ),
+                      Text(
+                        ":",
+                        style: TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(
+                        width: 55,
+                        height: 50,
+                        child: TextField(
+                          decoration: InputDecoration(labelText: "Port"),
+                        ),
+                      )
+                    ],
+                  ),
+                  const SizedBox(
+                    width: 206,
+                    height: 50,
+                    child: TextField(
+                      decoration: InputDecoration(labelText: "Password"),
+                    ),
+                  )
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
-}
-
-class SunburstChartWidget extends StatefulWidget {
-  @override
-  _SunburstChartWidgetState createState() => _SunburstChartWidgetState();
-}
-
-class _SunburstChartWidgetState extends State<SunburstChartWidget> {
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<List<SunburstData>>(
-      future: _fetchSunburstData(),
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          return SfSunburstChart(
-            dataLabelSettings: SunburstDataLabelSettings(isVisible: true),
-            series: _getSunburstSeries(snapshot.data!),
-          );
-        } else {
-          return CircularProgressIndicator();
-        }
-      },
-    );
-  }
-
-  SunburstSeries<SunburstData, String> _getSunburstSeries(
-      List<SunburstData> data) {
-    return SunburstSeries<SunburstData, String>(
-      dataSource: data,
-      valueMapper: (SunburstData d, _) => d.value,
-      levelMapper: (SunburstData d, _) => d.level,
-      idMapper: (SunburstData d, _) => d.id,
-      parentIdsMapper: (SunburstData d, _) => d.parentId,
-      colorValueMapper: (SunburstData d, _) => d.color,
-      dataLabelMapper: (SunburstData d, _) => d.label,
-    );
-  }
-
-  Future<List<SunburstData>> _fetchSunburstData() async {
-    List<SunburstData> sunburstData = [];
-
-    // Use the DatabaseHelper class to fetch data from the SQLite database
-    List<Map<String, dynamic>> data = await DatabaseHelper().fetchData();
-
-    // A helper function to find the parent id of a given path
-    String findParentId(String path) {
-      if (path == '/') return '';
-      List<String> parts = path.split('/');
-      parts.removeLast();
-      return '/' + parts.sublist(1).join('/');
-    }
-
-    // Process the data and create SunburstData instances
-    for (var row in data) {
-      String path = row['path'];
-      String id = path;
-      String parentId = findParentId(path);
-      String label = path.split('/').last;
-
-      // Customize the following code based on your specific requirements
-      sunburstData.add(SunburstData(
-        id: id,
-        parentId: parentId,
-        label: label,
-        level: path.split('/').length - 1,
-        value: row['size'],
-        color: row['isDirectory'] == 1 ? Colors.blue : Colors.orange,
-      ));
-    }
-
-    // Add root directory as the central node
-    sunburstData.add(SunburstData(
-      id: '/',
-      parentId: '',
-      label: '/',
-      level: 0,
-      value: 0,
-      color: Colors.red,
-    ));
-
-    return sunburstData;
-  }
-}
-
-class SunburstData {
-  SunburstData({
-    required this.id,
-    required this.parentId,
-    required this.label,
-    required this.level,
-    required this.value,
-    required this.color,
-  });
-
-  String id;
-  String parentId;
-  String label;
-  int level;
-  num value;
-  Color color;
 }
