@@ -104,6 +104,13 @@ class LandingPage extends StatelessWidget {
                     width: 206,
                     height: 50,
                     child: TextField(
+                      decoration: InputDecoration(labelText: "Username"),
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 206,
+                    height: 50,
+                    child: TextField(
                       decoration: InputDecoration(labelText: "Password"),
                     ),
                   )
