@@ -13,6 +13,7 @@ dependencies:
   path_provider: ^2.0.8
   syncfusion_flutter_charts: ^21.1.39
   window_manager: ^0.3.2
+  dartssh2: ^2.8.2
 
 dev_dependencies:
   flutter_test:
