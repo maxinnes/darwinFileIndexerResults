@@ -6,13 +6,16 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:dartssh2/dartssh2.dart';
 
+import 'connectToClient.dart';
+
 void main() async {
-  // Window Options
+  // Start window manager
   WidgetsFlutterBinding.ensureInitialized();
   await windowManager.ensureInitialized();
+  // Configure window options
   WindowOptions windowOptions = const WindowOptions(
     size: Size(800, 600),
-    backgroundColor: Colors.transparent,
+    // backgroundColor: Colors.transparent,
     skipTaskbar: false,
     titleBarStyle: TitleBarStyle.hidden,
   );
@@ -62,6 +65,8 @@ class _LandingPageState extends State<LandingPage> {
 
   // Connect button control
   bool isDisabled = true;
+
+  // Connection control
 
   @override
   Widget build(BuildContext context) {

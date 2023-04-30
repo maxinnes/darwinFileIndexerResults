@@ -3,23 +3,33 @@ import 'dart:io';
 
 import 'package:dartssh2/dartssh2.dart';
 
-void connectAndTransferClient(String ipAddress, int port) async {
+enum ConnectionStatus { connecting, transfering, failed, connected }
+
+void connectAndTransferClient(
+  String ipAddress,
+  String password, {
+  int? port = 22,
+  String username = "root",
+}) async {
   final client = SSHClient(
-    await SSHSocket.connect('localhost', 22),
-    username: 'root',
-    onPasswordRequest: () => 'alpine',
+    await SSHSocket.connect(ipAddress, port!),
+    username: username,
+    onPasswordRequest: () => password,
   );
 
   final sftp = await client.sftp();
-  final items = await sftp.listdir('/');
-  for (final item in items) {
-    print(item.longname);
-  }
+  final file = await sftp.open(
+    'file.txt',
+    mode: SftpFileOpenMode.truncate | SftpFileOpenMode.write,
+  );
+
+  await file.write(File('local_file.txt').openRead().cast()).done;
+  print('done');
 
   client.close();
   await client.done;
 }
 
 void main() {
-  connectAndTransferClient("test", 12);
+  connectAndTransferClient("127.0.0.1", "alpine", port: 2222);
 }
