@@ -1,11 +1,18 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:dartssh2/dartssh2.dart';
 
-enum ConnectionStatus { connecting, transfering, failed, connected }
+enum ConnectionStatus {
+  connecting,
+  integrityCheck,
+  transfering,
+  failed,
+  connected,
+}
 
-void connectAndTransferClient(
+Future<void> connectAndTransferClient(
   String ipAddress,
   String password, {
   int? port = 22,
@@ -17,19 +24,31 @@ void connectAndTransferClient(
     onPasswordRequest: () => password,
   );
 
+  // Create sftp client
   final sftp = await client.sftp();
-  final file = await sftp.open(
-    'file.txt',
-    mode: SftpFileOpenMode.truncate | SftpFileOpenMode.write,
-  );
 
-  await file.write(File('local_file.txt').openRead().cast()).done;
-  print('done');
+  // Create directory
+  await sftp.mkdir("/Library/Application Support/dfi");
+
+  // Upload file
+  const remotePath = '/Library/Application Support/dfi/darwinFileIndexer';
+  final file = await sftp.open(
+    remotePath,
+    mode: SftpFileOpenMode.truncate |
+        SftpFileOpenMode.write |
+        SftpFileOpenMode.create,
+  );
+  print("Starting upload...");
+  await file.write(File('darwinFileIndexer').openRead().cast()).done;
+  // await file.write(File('darwinFileIndexer').openRead().cast());
+  print('File transfer completed');
 
   client.close();
   await client.done;
+
+  return Future(() => null);
 }
 
-void main() {
-  connectAndTransferClient("127.0.0.1", "alpine", port: 2222);
+void main() async {
+  await connectAndTransferClient("127.0.0.1", "alpine", port: 2222);
 }
