@@ -1,12 +1,13 @@
-import 'dart:convert';
+// import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:syncfusion_flutter_charts/charts.dart';
+import 'package:provider/provider.dart';
+// import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:dartssh2/dartssh2.dart';
 
-import 'connectToClient.dart';
+import 'models/connect_and_transfer_model.dart';
 
 void main() async {
   // Start window manager
@@ -65,8 +66,6 @@ class _LandingPageState extends State<LandingPage> {
 
   // Connect button control
   bool isDisabled = true;
-
-  // Connection control
 
   @override
   Widget build(BuildContext context) {
@@ -221,13 +220,106 @@ class _LandingPageState extends State<LandingPage> {
   }
 }
 
-class LoadingDialog extends StatelessWidget {
+class LoadingDialog extends StatefulWidget {
   const LoadingDialog({
     super.key,
   });
 
   @override
+  State<LoadingDialog> createState() => _LoadingDialogState();
+}
+
+class _LoadingDialogState extends State<LoadingDialog> {
+  ConnectionStatus curruntStatus = ConnectionStatus.disconnected;
+  List<String> messageTrace = [];
+
+  // void connectClient(
+  //   String ipAddress,
+  //   String password, {
+  //   int? port = 22,
+  //   String username = "root",
+  // }) async {
+  void connectClient() async {
+    String ipAddress = "127.0.0.1";
+    int port = 2222;
+    String username = "root";
+    String password = "alpine";
+
+    setState(() {
+      curruntStatus = ConnectionStatus.connecting;
+      messageTrace.add("Connecting...");
+    });
+    // changeStatus(ConnectionStatus.connecting,
+    //     message: "Waiting to connect to client");
+
+    final client = SSHClient(
+      await SSHSocket.connect(ipAddress, port),
+      username: username,
+      onPasswordRequest: () => password,
+    );
+
+    setState(() {
+      curruntStatus = ConnectionStatus.connected;
+      messageTrace.add("Connected to the Client!");
+    });
+    // changeStatus(ConnectionStatus.connected,
+    //     message: "Successfully connected to client");
+
+    final sftpClient = await client.sftp();
+
+    // Create directory
+    await sftpClient.mkdir("/Library/Application Support/dfi");
+
+    setState(() {
+      curruntStatus = ConnectionStatus.transfering;
+      messageTrace.add("Transfering executable to client...");
+    });
+    // changeStatus(ConnectionStatus.transfering,
+    //     message: "Uploading program to client");
+
+    // Upload file
+    const remotePath = '/Library/Application Support/dfi/darwinFileIndexer';
+    final file = await sftpClient.open(
+      remotePath,
+      mode: SftpFileOpenMode.truncate |
+          SftpFileOpenMode.write |
+          SftpFileOpenMode.create,
+    );
+    // print("Starting upload...");
+    await file.write(File('darwinFileIndexer').openRead().cast()).done;
+    // await file.write(File('darwinFileIndexer').openRead().cast());
+    // print('File transfer completed');
+
+    // setState(() {
+    //   curruntStatus = ConnectionStatus.finished;
+    //   messageTrace.add("Finished!");
+    // });
+    // changeStatus(ConnectionStatus.connected, message: "Finished!");
+
+    client.close();
+    await client.done;
+
+    setState(() {
+      curruntStatus = ConnectionStatus.finished;
+      messageTrace.add("Finished!");
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    var statusMessage = "connecting...";
+    List<Widget> userMessageLog = [];
+
+    for (String message in messageTrace) {
+      userMessageLog.add(Text(message));
+    }
+
+    switch (curruntStatus) {
+      case ConnectionStatus.connecting:
+        break;
+      default:
+    }
+
     return Dialog(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(10, 15, 10, 15),
@@ -235,12 +327,16 @@ class LoadingDialog extends StatelessWidget {
           width: 100,
           height: 250,
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Text("Connecting...   "),
-                  SizedBox(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 0, 10, 0),
+                    child: Text(statusMessage),
+                  ),
+                  const SizedBox(
                     height: 25,
                     width: 25,
                     child: CircularProgressIndicator(),
@@ -248,18 +344,17 @@ class LoadingDialog extends StatelessWidget {
                 ],
               ),
               SizedBox(
-                height: 225,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      child: const Text("Cancel"),
-                    ),
-                  ],
+                height: 175,
+                width: 260,
+                child: ListView(
+                  children: userMessageLog,
                 ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: const Text("Cancel"),
               )
             ],
           ),
