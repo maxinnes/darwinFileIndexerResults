@@ -1,13 +1,17 @@
 // import 'dart:convert';
 import 'dart:io';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter/services.dart';
+// import 'package:provider/provider.dart';
 // import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:dartssh2/dartssh2.dart';
+import 'package:path_provider/path_provider.dart';
 
 import 'models/connect_and_transfer_model.dart';
+// import 'tools.dart';
 
 void main() async {
   // Start window manager
@@ -245,6 +249,8 @@ class _LoadingDialogState extends State<LoadingDialog> {
     String username = "root";
     String password = "alpine";
 
+    // sleep(const Duration(seconds: 2));
+
     setState(() {
       curruntStatus = ConnectionStatus.connecting;
       messageTrace.add("Connecting...");
@@ -268,7 +274,7 @@ class _LoadingDialogState extends State<LoadingDialog> {
     final sftpClient = await client.sftp();
 
     // Create directory
-    await sftpClient.mkdir("/Library/Application Support/dfi");
+    // await sftpClient.mkdir("/Library/Application Support/dfi");
 
     setState(() {
       curruntStatus = ConnectionStatus.transfering;
@@ -278,23 +284,26 @@ class _LoadingDialogState extends State<LoadingDialog> {
     //     message: "Uploading program to client");
 
     // Upload file
-    const remotePath = '/Library/Application Support/dfi/darwinFileIndexer';
+    const remotePath = '/usr/local/bin/dfi';
     final file = await sftpClient.open(
       remotePath,
       mode: SftpFileOpenMode.truncate |
           SftpFileOpenMode.write |
           SftpFileOpenMode.create,
     );
-    // print("Starting upload...");
-    await file.write(File('darwinFileIndexer').openRead().cast()).done;
-    // await file.write(File('darwinFileIndexer').openRead().cast());
-    // print('File transfer completed');
 
-    // setState(() {
-    //   curruntStatus = ConnectionStatus.finished;
-    //   messageTrace.add("Finished!");
-    // });
-    // changeStatus(ConnectionStatus.connected, message: "Finished!");
+    // Get file from assets
+    ByteData data = await rootBundle.load('assets/dfi');
+    final buffer = data.buffer;
+    final tempDir = await getTemporaryDirectory();
+    File tempFile = await File('${tempDir.path}/dfi').writeAsBytes(
+        buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
+
+    // Start upload
+    print(Directory.current);
+    print('breakpoint');
+
+    await file.write(tempFile.openRead().cast()).done;
 
     client.close();
     await client.done;
@@ -306,8 +315,15 @@ class _LoadingDialogState extends State<LoadingDialog> {
   }
 
   @override
+  void initState() {
+    super.initState();
+
+    connectClient();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    var statusMessage = "connecting...";
+    var statusMessage = "Connecting...";
     List<Widget> userMessageLog = [];
 
     for (String message in messageTrace) {
@@ -315,7 +331,14 @@ class _LoadingDialogState extends State<LoadingDialog> {
     }
 
     switch (curruntStatus) {
+      case ConnectionStatus.disconnected:
       case ConnectionStatus.connecting:
+        break;
+      case ConnectionStatus.transfering:
+        statusMessage = "Transfering...";
+        break;
+      case ConnectionStatus.finished:
+        statusMessage = "Finished!";
         break;
       default:
     }
@@ -354,7 +377,9 @@ class _LoadingDialogState extends State<LoadingDialog> {
                 onPressed: () {
                   Navigator.pop(context);
                 },
-                child: const Text("Cancel"),
+                child: curruntStatus == ConnectionStatus.finished
+                    ? const Text("Finished")
+                    : const Text("Cancel"),
               )
             ],
           ),
