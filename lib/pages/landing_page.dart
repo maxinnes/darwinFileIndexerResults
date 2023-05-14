@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:dartssh2/dartssh2.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 
 // Pages
 import 'dashboard_page.dart';
@@ -53,7 +54,10 @@ class _LandingPageState extends State<LandingPage> {
               children: const [
                 Text(
                   "Instructions",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 25),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 25,
+                  ),
                 ),
                 Text(
                   "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Commodo ullamcorper a lacus vestibulum sed. Malesuada bibendum arcu vitae elementum curabitur. Amet tellus cras adipiscing enim. Volutpat lacus laoreet non curabitur gravida arcu ac.\n\n1. Jailbreak device\n2. Install a SSH client on the device\n3. Connect device to this device\n4. Enter the SSH\n\nLeave the port field blank for default SSH port (22)",
@@ -230,6 +234,8 @@ class _LoadingDialogState extends State<LoadingDialog> {
     // messageTrace.add("Connected to the Client!");
     // curruntStatus = ConnectionStatus.connected;
     // notifyListeners();
+    Provider.of<ConnectAndTransferModel>(context, listen: false)
+        .setSshClient(client);
 
     // Create sftp client
     final sftpClient = await client.sftp();
@@ -267,8 +273,32 @@ class _LoadingDialogState extends State<LoadingDialog> {
 
     await file.write(tempFile.openRead().cast()).done;
 
-    client.close();
-    await client.done;
+    // Make executable
+    var currentFileAttributes = await file.stat();
+    var newFileMode = SftpFileMode(
+      userRead: true,
+      userWrite: true,
+      userExecute: true,
+      groupRead: true,
+      groupWrite: false,
+      groupExecute: false,
+      otherRead: true,
+      otherWrite: false,
+      otherExecute: false,
+    );
+    var newFileAttributes = SftpFileAttrs(
+      size: currentFileAttributes.size,
+      userID: 0,
+      groupID: 0,
+      mode: newFileMode,
+      accessTime: currentFileAttributes.accessTime,
+      modifyTime: currentFileAttributes.modifyTime,
+      extended: currentFileAttributes.extended,
+    );
+    await file.setStat(newFileAttributes);
+
+    // client.close();
+    // await client.done;
 
     // Done
     setState(() {

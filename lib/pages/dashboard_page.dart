@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../tools.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -72,11 +73,12 @@ class MainContent extends StatelessWidget {
         child: Column(
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: const [
                 Text(
-                  "..........",
+                  "iPhone",
                   textAlign: TextAlign.start,
+                  style: TextStyle(fontSize: 20),
                 ),
                 Text(
                   "Dashboard",
@@ -96,12 +98,21 @@ class MainContent extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (BuildContext context) =>
+                            const StartScanDialog(),
+                      );
+                    },
                     child: const Text("New scan"),
                   ),
                   ElevatedButton(
-                    onPressed: () {},
-                    child: const Text("Button 2"),
+                    onPressed: () {
+                      startScan(context);
+                    },
+                    child: const Text("testing"),
                   ),
                   ElevatedButton(
                     onPressed: () {},
@@ -114,6 +125,38 @@ class MainContent extends StatelessWidget {
                 ],
               ),
             )
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class StartScanDialog extends StatelessWidget {
+  const StartScanDialog({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      child: Container(
+        height: 300,
+        width: 300,
+        padding: const EdgeInsets.fromLTRB(10, 20, 10, 20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              "Waiting for scan to complete",
+              style: TextStyle(fontSize: 20),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text("Close"),
+            ),
           ],
         ),
       ),

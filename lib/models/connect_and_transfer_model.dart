@@ -1,11 +1,8 @@
 // Dart in-built
-import 'dart:io';
 
 // Packages
-import 'package:flutter/material.dart';
 import 'package:dartssh2/dartssh2.dart';
-import 'package:flutter/services.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:flutter/material.dart';
 
 enum ConnectionStatus {
   disconnected,
@@ -20,12 +17,17 @@ enum ConnectionStatus {
 class ConnectAndTransferModel extends ChangeNotifier {
   ConnectionStatus curruntStatus = ConnectionStatus.disconnected;
   List<String> messageTrace = [];
+  SSHClient? sshClient;
 
   void updateConnectionStatus(
       ConnectionStatus updatedStatus, String newMessage) {
     curruntStatus = updatedStatus;
     messageTrace.add(newMessage);
     notifyListeners();
+  }
+
+  void setSshClient(SSHClient newSshClient) {
+    sshClient = newSshClient;
   }
 
   // void connectClient(
