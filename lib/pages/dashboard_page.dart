@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../tools.dart';
+import 'package:provider/provider.dart';
+import '../models/connect_and_transfer_model.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -26,7 +28,7 @@ class _DashboardPageState extends State<DashboardPage> {
         displayContent = const MainContent();
         break;
       case 1:
-        displayContent = const StarContent();
+        displayContent = const ScanContent();
         break;
       default:
     }
@@ -99,18 +101,20 @@ class MainContent extends StatelessWidget {
                 children: [
                   ElevatedButton(
                     onPressed: () {
-                      showDialog(
-                        context: context,
-                        barrierDismissible: false,
-                        builder: (BuildContext context) =>
-                            const StartScanDialog(),
+                      startScan(context);
+                      getJsonFileContents().then(
+                        (value) {
+                          Provider.of<ConnectAndTransferModel>(context,
+                                  listen: false)
+                              .setTableData(value);
+                        },
                       );
                     },
                     child: const Text("New scan"),
                   ),
                   ElevatedButton(
                     onPressed: () {
-                      startScan(context);
+                      myTestingFunction();
                     },
                     child: const Text("testing"),
                   ),
@@ -164,24 +168,54 @@ class StartScanDialog extends StatelessWidget {
   }
 }
 
-class StarContent extends StatelessWidget {
-  const StarContent({super.key});
+class ScanContent extends StatelessWidget {
+  const ScanContent({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    return Container(
       width: 728,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(30, 30, 30, 30),
-        child: Column(
-          children: const [
-            Text(
+      padding: const EdgeInsets.fromLTRB(30, 30, 30, 30),
+      child: Column(
+        children: const [
+          Padding(
+            padding: EdgeInsets.fromLTRB(0, 0, 0, 20),
+            child: Text(
               "Previous Scans",
               style: TextStyle(fontSize: 20),
             ),
-          ],
-        ),
+          ),
+          ScansTable()
+        ],
       ),
+    );
+  }
+}
+
+class ScansTable extends StatelessWidget {
+  const ScansTable({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    List tableData = context.watch<ConnectAndTransferModel>().tableData;
+    List<TableRow> dataRows = [
+      const TableRow(children: [
+        Text("ID"),
+        Text("Date"),
+        Text("File path"),
+      ])
+    ];
+
+    for (var x in tableData) {
+      dataRows.add(TableRow(
+          children: [Text(x.id), Text(x.dateTaken), Text(x.dbLocation)]));
+    }
+
+    return Table(
+      border: TableBorder.all(color: Colors.white),
+      children: dataRows,
     );
   }
 }

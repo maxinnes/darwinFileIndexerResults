@@ -226,6 +226,9 @@ class _LoadingDialogState extends State<LoadingDialog> {
       onPasswordRequest: () => password,
     );
 
+    Provider.of<ConnectAndTransferModel>(context, listen: false)
+        .setSshClient(client);
+
     // Connected
     setState(() {
       curruntStatus = ConnectionStatus.connected;
@@ -234,8 +237,6 @@ class _LoadingDialogState extends State<LoadingDialog> {
     // messageTrace.add("Connected to the Client!");
     // curruntStatus = ConnectionStatus.connected;
     // notifyListeners();
-    Provider.of<ConnectAndTransferModel>(context, listen: false)
-        .setSshClient(client);
 
     // Create sftp client
     final sftpClient = await client.sftp();

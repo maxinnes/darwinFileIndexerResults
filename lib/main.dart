@@ -1,7 +1,7 @@
 // Packages
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:window_manager/window_manager.dart';
+// import 'package:window_manager/window_manager.dart';
 
 // Pages
 import 'pages/landing_page.dart';
@@ -13,30 +13,34 @@ import 'models/connect_and_transfer_model.dart';
 import 'tools.dart';
 
 void main() async {
+  // set up window
+  setUpWindow();
   // Check required files
   doesJsonFileExist();
 
   // Start window manager
-  WidgetsFlutterBinding.ensureInitialized();
-  await windowManager.ensureInitialized();
-  // Configure window options
-  WindowOptions windowOptions = const WindowOptions(
-    size: Size(800, 600),
-    // backgroundColor: Colors.transparent,
-    skipTaskbar: false,
-    titleBarStyle: TitleBarStyle.hidden,
-  );
-  windowManager.setResizable(false);
-  windowManager.waitUntilReadyToShow(windowOptions, () async {
-    await windowManager.show();
-    await windowManager.focus();
-  });
+  // WidgetsFlutterBinding.ensureInitialized();
+  // await windowManager.ensureInitialized();
+  // // Configure window options
+  // WindowOptions windowOptions = const WindowOptions(
+  //   size: Size(800, 700),
+  //   // backgroundColor: Colors.transparent,
+  //   skipTaskbar: false,
+  //   titleBarStyle: TitleBarStyle.hidden,
+  // );
+  // windowManager.setResizable(false);
+  // windowManager.waitUntilReadyToShow(windowOptions, () async {
+  //   await windowManager.show();
+  //   await windowManager.focus();
+  // });
 
   // runApp(const MyApp());
   runApp(ChangeNotifierProvider(
     create: (context) => ConnectAndTransferModel(),
     child: const MyApp(),
   ));
+
+  startUpLoggeringInfo();
 }
 
 class MyApp extends StatelessWidget {

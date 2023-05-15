@@ -7,9 +7,57 @@ import 'package:dartssh2/dartssh2.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+// import 'package:logger/logger.dart';
+import 'package:window_size/window_size.dart';
+import 'package:flutter/foundation.dart';
 
 // Models
 import 'models/connect_and_transfer_model.dart';
+
+// var logger = Logger();
+
+void startUpLoggeringInfo() async {
+  var documentPath = await getApplicationDocumentsDirectory();
+  var documentPathString = documentPath.path;
+  print("Document path: $documentPathString");
+
+  // logger.d("Document path: $documentPathString");
+}
+
+void setUpWindow() {
+  const double windowWidth = 800;
+  const double windowHeight = 625;
+
+  if (!kIsWeb && (Platform.isWindows || Platform.isLinux || Platform.isMacOS)) {
+    WidgetsFlutterBinding.ensureInitialized();
+    setWindowTitle('Provider Demo');
+    setWindowMinSize(const Size(windowWidth, windowHeight));
+    setWindowMaxSize(const Size(windowWidth, windowHeight));
+    getCurrentScreen().then((screen) {
+      setWindowFrame(Rect.fromCenter(
+        center: screen!.frame.center,
+        width: windowWidth,
+        height: windowHeight,
+      ));
+    });
+  }
+}
+
+void myTestingFunction() async {
+  print("===== NEW =====");
+  var dbContents = await getJsonFileContents();
+  var dbContentsLength = dbContents.length;
+  print("Length before: $dbContentsLength");
+
+  if (dbContentsLength == 0) print("If statement triggered");
+
+  var newDbRecord = {"dateTaken": DateTime.now().millisecondsSinceEpoch};
+  dbContents.add(newDbRecord);
+  writeJsonFileContents(dbContents);
+  dbContents = await getJsonFileContents();
+  dbContentsLength = dbContents.length;
+  print("Length after: $dbContentsLength");
+}
 
 void startScan(BuildContext context) async {
   // File stuff
@@ -27,7 +75,7 @@ void startScan(BuildContext context) async {
   // Create scan folder
   var dbContents = await getJsonFileContents();
   var dbContentsLength = dbContents.length;
-  if (dbContentsLength == 0) dbContentsLength = 1;
+  dbContentsLength = dbContentsLength + 1;
   var newDirectoryPath = '$documentPathString/scans/$dbContentsLength';
   Directory(newDirectoryPath).createSync(recursive: true);
 
@@ -81,7 +129,7 @@ Future<List> getJsonFileContents() async {
   return data;
 }
 
-void writeJsonFileContents(dynamic data) async {
+void writeJsonFileContents(var data) async {
   var documentPath = await getApplicationDocumentsDirectory();
   var documentPathString = documentPath.path;
   var fileName = "results.json";
