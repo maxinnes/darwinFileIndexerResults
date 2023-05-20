@@ -48,6 +48,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    getJsonFileContents().then((jsonContents) => {
+          Provider.of<ConnectAndTransferModel>(context, listen: false)
+              .setTableData(jsonContents)
+        });
     return MaterialApp(
       theme: ThemeData(
         brightness: Brightness.dark,

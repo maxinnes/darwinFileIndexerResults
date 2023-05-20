@@ -3,18 +3,10 @@ import 'dart:io';
 import 'dart:convert';
 
 // Packages
-import 'package:dartssh2/dartssh2.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:provider/provider.dart';
-// import 'package:logger/logger.dart';
 import 'package:window_size/window_size.dart';
 import 'package:flutter/foundation.dart';
-
-// Models
-import 'models/connect_and_transfer_model.dart';
-
-// var logger = Logger();
 
 void startUpLoggeringInfo() async {
   var documentPath = await getApplicationDocumentsDirectory();
@@ -57,48 +49,6 @@ void myTestingFunction() async {
   dbContents = await getJsonFileContents();
   dbContentsLength = dbContents.length;
   print("Length after: $dbContentsLength");
-}
-
-void startScan(BuildContext context) async {
-  // File stuff
-  var documentPath = await getApplicationDocumentsDirectory();
-  var documentPathString = documentPath.path;
-
-  // Execute scan
-  print("Starting SCAN!!!");
-  SSHClient? client =
-      Provider.of<ConnectAndTransferModel>(context, listen: false).sshClient;
-  final uptime = await client?.run('/usr/local/bin/dfi');
-  print(utf8.decode(uptime!));
-  print("FINISHED SCAN!!!");
-
-  // Create scan folder
-  var dbContents = await getJsonFileContents();
-  var dbContentsLength = dbContents.length;
-  dbContentsLength = dbContentsLength + 1;
-  var newDirectoryPath = '$documentPathString/scans/$dbContentsLength';
-  Directory(newDirectoryPath).createSync(recursive: true);
-
-  // Download results
-  var sftp = await client?.sftp();
-  var remoteFile =
-      await sftp?.open('/var/root/file_info.db', mode: SftpFileOpenMode.read);
-  var data = await remoteFile?.readBytes();
-
-  var localFile = File('$newDirectoryPath/file_info.db');
-  await localFile.writeAsBytes(data!); // Write bytes directly to the file
-  print("File downloaded");
-
-  await client?.run('rm -f /var/root/file_info.db');
-  print("Removed previous file");
-
-  var newDbRecord = {
-    "id": dbContentsLength,
-    "dateTaken": DateTime.now().millisecondsSinceEpoch,
-    "dbLocation": localFile.path
-  };
-  dbContents.add(newDbRecord);
-  writeJsonFileContents(dbContents);
 }
 
 void doesJsonFileExist() async {

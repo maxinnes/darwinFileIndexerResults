@@ -49,9 +49,9 @@ class _LandingPageState extends State<LandingPage> {
         padding: const EdgeInsets.fromLTRB(100, 25, 100, 25),
         child: Column(
           children: [
-            Column(
+            const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 Text(
                   "Instructions",
                   style: TextStyle(

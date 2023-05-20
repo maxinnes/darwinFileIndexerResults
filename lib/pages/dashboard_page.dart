@@ -1,7 +1,13 @@
+// Packages
 import 'package:flutter/material.dart';
-import '../tools.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+
+// Models
 import '../models/connect_and_transfer_model.dart';
+
+// Tools
+import '../tools.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -74,9 +80,9 @@ class MainContent extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(30, 30, 30, 30),
         child: Column(
           children: [
-            Row(
+            const Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
+              children: [
                 Text(
                   "iPhone",
                   textAlign: TextAlign.start,
@@ -101,14 +107,13 @@ class MainContent extends StatelessWidget {
                 children: [
                   ElevatedButton(
                     onPressed: () {
-                      startScan(context);
-                      getJsonFileContents().then(
-                        (value) {
-                          Provider.of<ConnectAndTransferModel>(context,
-                                  listen: false)
-                              .setTableData(value);
-                        },
-                      );
+                      showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (BuildContext context) =>
+                              const StartScanDialog());
+                      // context.read<ConnectAndTransferModel>().startScan();
+                      // print("test");
                     },
                     child: const Text("New scan"),
                   ),
@@ -118,13 +123,13 @@ class MainContent extends StatelessWidget {
                     },
                     child: const Text("testing"),
                   ),
-                  ElevatedButton(
-                    onPressed: () {},
-                    child: const Text("Button 3"),
+                  const ElevatedButton(
+                    onPressed: null,
+                    child: Text("Button 3"),
                   ),
-                  ElevatedButton(
-                    onPressed: () {},
-                    child: const Text("Button 4"),
+                  const ElevatedButton(
+                    onPressed: null,
+                    child: Text("Button 4"),
                   )
                 ],
               ),
@@ -159,7 +164,7 @@ class StartScanDialog extends StatelessWidget {
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: const Text("Close"),
+              child: const Text("Cancel"),
             ),
           ],
         ),
@@ -176,8 +181,8 @@ class ScanContent extends StatelessWidget {
     return Container(
       width: 728,
       padding: const EdgeInsets.fromLTRB(30, 30, 30, 30),
-      child: Column(
-        children: const [
+      child: const Column(
+        children: [
           Padding(
             padding: EdgeInsets.fromLTRB(0, 0, 0, 20),
             child: Text(
@@ -200,20 +205,54 @@ class ScansTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     List tableData = context.watch<ConnectAndTransferModel>().tableData;
+
     List<TableRow> dataRows = [
       const TableRow(children: [
-        Text("ID"),
-        Text("Date"),
-        Text("File path"),
+        Padding(
+          padding: EdgeInsets.all(5.0),
+          child: Text("ID"),
+        ),
+        Padding(
+          padding: EdgeInsets.all(5.0),
+          child: Text("Date"),
+        ),
+        Padding(
+          padding: EdgeInsets.all(5.0),
+          child: Text("File path"),
+        ),
       ])
     ];
 
-    for (var x in tableData) {
-      dataRows.add(TableRow(
-          children: [Text(x.id), Text(x.dateTaken), Text(x.dbLocation)]));
+    for (var row in tableData) {
+      int timestamp = row["dateTaken"];
+      DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
+      String format = 'yyyy-MM-dd HH:mm:ss';
+      DateFormat formatter = DateFormat(format);
+      String formattedDate = formatter.format(dateTime);
+
+      dataRows.add(TableRow(children: [
+        Padding(
+          padding: const EdgeInsets.all(5.0),
+          child: Text(row["id"].toString()),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(5.0),
+          child: Text(formattedDate),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(5.0),
+          child: Text(row["dbLocation"]),
+        )
+      ]));
     }
 
     return Table(
+      // columnWidths: const {0: FractionColumnWidth(.05)}, IntrinsicColumnWidth
+      columnWidths: const {
+        0: IntrinsicColumnWidth(),
+        1: IntrinsicColumnWidth()
+      },
+      defaultVerticalAlignment: TableCellVerticalAlignment.middle,
       border: TableBorder.all(color: Colors.white),
       children: dataRows,
     );
