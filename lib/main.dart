@@ -1,7 +1,6 @@
 // Packages
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-// import 'package:window_manager/window_manager.dart';
 
 // Pages
 import 'pages/landing_page.dart';
@@ -18,23 +17,6 @@ void main() async {
   // Check required files
   doesJsonFileExist();
 
-  // Start window manager
-  // WidgetsFlutterBinding.ensureInitialized();
-  // await windowManager.ensureInitialized();
-  // // Configure window options
-  // WindowOptions windowOptions = const WindowOptions(
-  //   size: Size(800, 700),
-  //   // backgroundColor: Colors.transparent,
-  //   skipTaskbar: false,
-  //   titleBarStyle: TitleBarStyle.hidden,
-  // );
-  // windowManager.setResizable(false);
-  // windowManager.waitUntilReadyToShow(windowOptions, () async {
-  //   await windowManager.show();
-  //   await windowManager.focus();
-  // });
-
-  // runApp(const MyApp());
   runApp(ChangeNotifierProvider(
     create: (context) => ConnectAndTransferModel(),
     child: const MyApp(),
@@ -49,8 +31,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     getJsonFileContents().then((jsonContents) => {
-          Provider.of<ConnectAndTransferModel>(context, listen: false)
-              .setTableData(jsonContents)
+          context.read<ConnectAndTransferModel>().setTableData(jsonContents)
+          // Provider.of<ConnectAndTransferModel>(context, listen: false)
+          //     .setTableData(jsonContents)
         });
     return MaterialApp(
       theme: ThemeData(

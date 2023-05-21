@@ -113,7 +113,6 @@ class MainContent extends StatelessWidget {
                           builder: (BuildContext context) =>
                               const StartScanDialog());
                       // context.read<ConnectAndTransferModel>().startScan();
-                      // print("test");
                     },
                     child: const Text("New scan"),
                   ),
@@ -141,13 +140,57 @@ class MainContent extends StatelessWidget {
   }
 }
 
-class StartScanDialog extends StatelessWidget {
+class StartScanDialog extends StatefulWidget {
   const StartScanDialog({
     super.key,
   });
 
   @override
+  State<StartScanDialog> createState() => _StartScanDialogState();
+}
+
+class _StartScanDialogState extends State<StartScanDialog> {
+  ScanStatus currentStatus = ScanStatus.waitingToStart;
+  List<String> messages = ["Waiting to start"];
+
+  void updateScanStatus(ScanStatus newStatus, String newMessage) {
+    setState(() {
+      currentStatus = newStatus;
+      messages.add(newMessage);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    String modelTitle = "Waiting to start scan";
+    String btnText = "Cancel";
+    List<Widget> modelMessages = [];
+
+    for (String message in messages) {
+      modelMessages.add(Text(message));
+    }
+
+    if (currentStatus == ScanStatus.waitingToStart) {
+      context.read<ConnectAndTransferModel>().startScan(updateScanStatus);
+    }
+
+    switch (currentStatus) {
+      case ScanStatus.waitingToStart:
+        break;
+      case ScanStatus.startedScan:
+        modelTitle = "Now scanning";
+        break;
+      case ScanStatus.finishedScan:
+      case ScanStatus.downloadingResults:
+        modelTitle = "Downloading results";
+        break;
+      case ScanStatus.removingResultsFromRemoteDevice:
+      case ScanStatus.complete:
+        modelTitle = "Finished";
+        btnText = "Done";
+        break;
+    }
+
     return Dialog(
       child: Container(
         height: 300,
@@ -156,15 +199,23 @@ class StartScanDialog extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              "Waiting for scan to complete",
-              style: TextStyle(fontSize: 20),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(0, 0, 0, 10),
+              child: Text(
+                modelTitle,
+                style: const TextStyle(fontSize: 20),
+              ),
+            ),
+            Expanded(
+              child: ListView(
+                children: modelMessages,
+              ),
             ),
             ElevatedButton(
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: const Text("Cancel"),
+              child: Text(btnText),
             ),
           ],
         ),
