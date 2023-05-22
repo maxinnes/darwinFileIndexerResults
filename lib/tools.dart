@@ -10,24 +10,17 @@ import 'package:window_size/window_size.dart';
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
 
-// enums
-enum ScanStatus {
-  waitingToStart,
-  startedScan,
-  finishedScan,
-  downloadingResults,
-  removingResultsFromRemoteDevice,
-  complete
-}
-
 // Init logger
 var logger = Logger();
 
 void startUpLoggeringInfo() async {
   var documentPath = await getApplicationDocumentsDirectory();
   var documentPathString = documentPath.path;
+  final tempDir = await getTemporaryDirectory();
+  final tempDirString = tempDir.path;
 
   logger.d('Document path: $documentPathString');
+  logger.d('Temp path: $tempDirString');
 }
 
 void setUpWindow() {

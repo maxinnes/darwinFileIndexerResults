@@ -1,11 +1,5 @@
-// Dart in-built
-import 'dart:io';
-
 // Packages
 import 'package:flutter/material.dart';
-import 'package:dartssh2/dartssh2.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 // Pages
@@ -205,117 +199,11 @@ class _LoadingDialogState extends State<LoadingDialog> {
   ConnectionStatus curruntStatus = ConnectionStatus.disconnected;
   List<String> messageTrace = [];
 
-  void connectClient() async {
-    String ipAddress = "127.0.0.1";
-    int port = 2222;
-    String username = "root";
-    String password = "alpine";
-
-    // Connecting
+  void updateConnectionStatus(ConnectionStatus newStatus, String newMessage) {
     setState(() {
-      curruntStatus = ConnectionStatus.connecting;
-      messageTrace.add("Connecting...");
+      curruntStatus = newStatus;
+      messageTrace.add(newMessage);
     });
-    // messageTrace.add("Connecting...");
-    // curruntStatus = ConnectionStatus.connecting;
-    // notifyListeners();
-
-    final client = SSHClient(
-      await SSHSocket.connect(ipAddress, port),
-      username: username,
-      onPasswordRequest: () => password,
-    );
-
-    Provider.of<ConnectAndTransferModel>(context, listen: false)
-        .setSshClient(client);
-
-    // Connected
-    setState(() {
-      curruntStatus = ConnectionStatus.connected;
-      messageTrace.add("Connected to the Client!");
-    });
-    // messageTrace.add("Connected to the Client!");
-    // curruntStatus = ConnectionStatus.connected;
-    // notifyListeners();
-
-    // Create sftp client
-    final sftpClient = await client.sftp();
-
-    // Upload file
-    const remotePath = '/usr/local/bin/dfi';
-    final file = await sftpClient.open(
-      remotePath,
-      mode: SftpFileOpenMode.truncate |
-          SftpFileOpenMode.write |
-          SftpFileOpenMode.create,
-    );
-
-    // Start upload
-    setState(() {
-      curruntStatus = ConnectionStatus.transfering;
-      messageTrace.add("Transfering executable to client...");
-    });
-
-    // Get file from assets
-    ByteData data = await rootBundle.load('assets/dfi');
-    final buffer = data.buffer;
-    final tempDir = await getTemporaryDirectory();
-    File tempFile = await File('${tempDir.path}/dfi').writeAsBytes(
-        buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
-
-    // Start upload
-    // setState(() {
-    //   curruntStatus = ConnectionStatus.transfering;
-    //   messageTrace.add("Transfering executable to client...");
-    // });
-    // messageTrace.add("Transfering executable to client...");
-    // curruntStatus = ConnectionStatus.transfering;
-    // notifyListeners();
-
-    await file.write(tempFile.openRead().cast()).done;
-
-    // Make executable
-    var currentFileAttributes = await file.stat();
-    var newFileMode = SftpFileMode(
-      userRead: true,
-      userWrite: true,
-      userExecute: true,
-      groupRead: true,
-      groupWrite: false,
-      groupExecute: false,
-      otherRead: true,
-      otherWrite: false,
-      otherExecute: false,
-    );
-    var newFileAttributes = SftpFileAttrs(
-      size: currentFileAttributes.size,
-      userID: 0,
-      groupID: 0,
-      mode: newFileMode,
-      accessTime: currentFileAttributes.accessTime,
-      modifyTime: currentFileAttributes.modifyTime,
-      extended: currentFileAttributes.extended,
-    );
-    await file.setStat(newFileAttributes);
-
-    // client.close();
-    // await client.done;
-
-    // Done
-    setState(() {
-      curruntStatus = ConnectionStatus.finished;
-      messageTrace.add("Connected!");
-    });
-    // messageTrace.add("Connected!");
-    // curruntStatus = ConnectionStatus.connected;
-    // notifyListeners();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-
-    connectClient();
   }
 
   @override
@@ -325,6 +213,12 @@ class _LoadingDialogState extends State<LoadingDialog> {
 
     for (String message in messageTrace) {
       userMessageLog.add(Text(message));
+    }
+
+    if (curruntStatus == ConnectionStatus.disconnected) {
+      context
+          .read<ConnectAndTransferModel>()
+          .connectClient(updateConnectionStatus);
     }
 
     switch (curruntStatus) {
