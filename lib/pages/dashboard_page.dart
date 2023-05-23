@@ -269,7 +269,7 @@ class ScansTable extends StatelessWidget {
         ),
         Padding(
           padding: EdgeInsets.all(5.0),
-          child: Text("File path"),
+          child: Text("Action"),
         ),
       ])
     ];
@@ -277,31 +277,42 @@ class ScansTable extends StatelessWidget {
     for (var row in tableData) {
       int timestamp = row["dateTaken"];
       DateTime dateTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
-      String format = 'yyyy-MM-dd HH:mm:ss';
-      DateFormat formatter = DateFormat(format);
+      DateFormat formatter = DateFormat('yyyy-MM-dd HH:mm:ss');
       String formattedDate = formatter.format(dateTime);
 
-      dataRows.add(TableRow(children: [
-        Padding(
-          padding: const EdgeInsets.all(5.0),
-          child: Text(row["id"].toString()),
+      dataRows.add(
+        TableRow(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(5.0),
+              child: Text(row["id"].toString()),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(5.0),
+              child: Text(formattedDate),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+              child: SizedBox(
+                height: 25,
+                width: 80,
+                child: ElevatedButton(
+                  onPressed: () {},
+                  child: const Text("Action"),
+                ),
+              ),
+            )
+          ],
         ),
-        Padding(
-          padding: const EdgeInsets.all(5.0),
-          child: Text(formattedDate),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(5.0),
-          child: Text(row["dbLocation"]),
-        )
-      ]));
+      );
     }
 
     return Table(
       // columnWidths: const {0: FractionColumnWidth(.05)}, IntrinsicColumnWidth
       columnWidths: const {
         0: IntrinsicColumnWidth(),
-        1: IntrinsicColumnWidth()
+        1: IntrinsicColumnWidth(),
+        2: IntrinsicColumnWidth()
       },
       defaultVerticalAlignment: TableCellVerticalAlignment.middle,
       border: TableBorder.all(color: Colors.white),
