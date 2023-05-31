@@ -1,4 +1,5 @@
 // Packages
+// import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -112,7 +113,6 @@ class MainContent extends StatelessWidget {
                           barrierDismissible: false,
                           builder: (BuildContext context) =>
                               const StartScanDialog());
-                      // context.read<ConnectAndTransferModel>().startScan();
                     },
                     child: const Text("New scan"),
                   ),
@@ -171,7 +171,7 @@ class _StartScanDialogState extends State<StartScanDialog> {
     }
 
     if (currentStatus == ScanStatus.waitingToStart) {
-      context.read<ConnectAndTransferModel>().startScan(updateScanStatus);
+      // context.read<ConnectAndTransferModel>().startScan(updateScanStatus);
     }
 
     switch (currentStatus) {
@@ -297,7 +297,11 @@ class ScansTable extends StatelessWidget {
                 height: 25,
                 width: 80,
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () async {
+                    // await DesktopMultiWindow.createWindow(
+
+                    // );
+                  },
                   child: const Text("Action"),
                 ),
               ),

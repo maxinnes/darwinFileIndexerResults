@@ -1,6 +1,11 @@
 // Packages
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+// import 'package:provider/provider.dart';
+
+// Classes
+import '../connection.dart';
 
 // Pages
 import 'dashboard_page.dart';
@@ -199,10 +204,31 @@ class _LoadingDialogState extends State<LoadingDialog> {
   ConnectionStatus curruntStatus = ConnectionStatus.disconnected;
   List<String> messageTrace = [];
 
-  void updateConnectionStatus(ConnectionStatus newStatus, String newMessage) {
+  // TODO READ THIS
+  // https://stackoverflow.com/questions/44450758/cancel-stream-ondata
+  // Issue might be todo with the "late" statement
+  late StreamSubscription connectionStreamSubscription;
+
+  // void updateConnectionStatus(ConnectionStatus newStatus, String newMessage) {
+  //   setState(() {
+  //     curruntStatus = newStatus;
+  //     messageTrace.add(newMessage);
+  //   });
+  // }
+
+  Future<void> startConnection() async {
+    var newConnectionStream = ConnectAndTransferOperations.connectClient();
+    var newConnectionStreamSubscription = newConnectionStream.listen((event) {
+      var newStatus = event["connectionStatus"];
+      var newMessage = event["newStatusMessage"];
+      setState(() {
+        curruntStatus = newStatus;
+        messageTrace.add(newMessage);
+      });
+    });
+
     setState(() {
-      curruntStatus = newStatus;
-      messageTrace.add(newMessage);
+      connectionStreamSubscription = newConnectionStreamSubscription;
     });
   }
 
@@ -216,9 +242,7 @@ class _LoadingDialogState extends State<LoadingDialog> {
     }
 
     if (curruntStatus == ConnectionStatus.disconnected) {
-      context
-          .read<ConnectAndTransferModel>()
-          .connectClient(updateConnectionStatus);
+      startConnection();
     }
 
     switch (curruntStatus) {
@@ -273,7 +297,10 @@ class _LoadingDialogState extends State<LoadingDialog> {
                           ),
                         );
                       }
-                    : () => Navigator.pop(context),
+                    : () {
+                        connectionStreamSubscription.cancel();
+                        Navigator.pop(context);
+                      },
                 child: curruntStatus == ConnectionStatus.finished
                     ? const Text("Finished")
                     : const Text("Cancel"),
