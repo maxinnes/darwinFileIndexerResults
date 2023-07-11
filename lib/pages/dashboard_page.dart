@@ -89,7 +89,7 @@ class MainContent extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "iPhone",
+                  "iPhone 1",
                   textAlign: TextAlign.start,
                   style: TextStyle(fontSize: 20),
                 ),
@@ -99,7 +99,7 @@ class MainContent extends StatelessWidget {
                   style: TextStyle(fontSize: 20),
                 ),
                 Text(
-                  "Status:",
+                  "Connected",
                   textAlign: TextAlign.end,
                   style: TextStyle(fontSize: 20),
                 ),
@@ -108,33 +108,82 @@ class MainContent extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(0, 50, 0, 0),
               child: Row(
-                // Row
+                crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                // crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      showDialog(
-                          context: context,
-                          barrierDismissible: false,
-                          builder: (BuildContext context) =>
-                              const StartScanDialog());
-                    },
-                    child: const Text("New scan"),
+                  SizedBox(
+                    height: 200,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Actions",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            showDialog(
+                                context: context,
+                                barrierDismissible: false,
+                                builder: (BuildContext context) =>
+                                    const StartScanDialog());
+                          },
+                          child: const Text("New scan"),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            myTestingFunction();
+                          },
+                          child: const Text("Run test"),
+                        ),
+                        const ElevatedButton(
+                          onPressed: null,
+                          child: Text("Future Operation"),
+                        ),
+                        const ElevatedButton(
+                          onPressed: null,
+                          child: Text("Future Operation"),
+                        )
+                      ],
+                    ),
                   ),
-                  ElevatedButton(
-                    onPressed: () {
-                      myTestingFunction();
-                    },
-                    child: const Text("testing"),
-                  ),
-                  const ElevatedButton(
-                    onPressed: null,
-                    child: Text("Button 3"),
-                  ),
-                  const ElevatedButton(
-                    onPressed: null,
-                    child: Text("Button 4"),
+                  Column(
+                    children: [
+                      const Padding(
+                        padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
+                        child: Text(
+                          "System Information",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        alignment: Alignment.center,
+                        height: 300,
+                        width: 400,
+                        padding: const EdgeInsets.all(10),
+                        decoration: const BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(),
+                            top: BorderSide(),
+                            left: BorderSide(),
+                            right: BorderSide(),
+                          ),
+                        ),
+                        child: const Padding(
+                          padding: EdgeInsets.all(20.0),
+                          child: Text("Live system information placeholder"),
+                        ),
+                      ),
+                    ],
                   )
                 ],
               ),
