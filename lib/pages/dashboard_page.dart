@@ -1,8 +1,12 @@
 // Packages
 // import 'package:desktop_multi_window/desktop_multi_window.dart';
+// import 'package:darwin_file_indexer_results/connection.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+
+// Classes
+import '../connection.dart';
 
 // Models
 import '../models/connect_and_transfer_model.dart';
@@ -104,7 +108,9 @@ class MainContent extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(0, 50, 0, 0),
               child: Row(
+                // Row
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                // crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   ElevatedButton(
                     onPressed: () {
@@ -152,6 +158,7 @@ class StartScanDialog extends StatefulWidget {
 class _StartScanDialogState extends State<StartScanDialog> {
   ScanStatus currentStatus = ScanStatus.waitingToStart;
   List<String> messages = ["Waiting to start"];
+  // late List<dynamic> newTableData;
 
   void updateScanStatus(ScanStatus newStatus, String newMessage) {
     setState(() {
@@ -160,11 +167,38 @@ class _StartScanDialogState extends State<StartScanDialog> {
     });
   }
 
+  Future<void> startScan() async {
+    var newScanStream = ConnectAndTransferOperations.startScan();
+    newScanStream.listen((event) {
+      var newStatus = event["nextStatus"];
+      var newMessage = event["nextMessage"];
+      if (event.containsKey("")) {
+        setState(() {
+          currentStatus = newStatus;
+          messages.add(newMessage);
+          // newTableData = event["result"];
+        });
+      } else {
+        setState(() {
+          currentStatus = newStatus;
+          messages.add(newMessage);
+        });
+      }
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    startScan();
+  }
+
   @override
   Widget build(BuildContext context) {
     String modelTitle = "Waiting to start scan";
     String btnText = "Cancel";
     List<Widget> modelMessages = [];
+    bool scanDone = false;
 
     for (String message in messages) {
       modelMessages.add(Text(message));
@@ -188,6 +222,7 @@ class _StartScanDialogState extends State<StartScanDialog> {
       case ScanStatus.complete:
         modelTitle = "Finished";
         btnText = "Done";
+        scanDone = true;
         break;
     }
 
@@ -212,9 +247,14 @@ class _StartScanDialogState extends State<StartScanDialog> {
               ),
             ),
             ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
+              onPressed: scanDone
+                  ? () {
+                      updateTableData(context);
+                      Navigator.pop(context);
+                    }
+                  : () {
+                      Navigator.pop(context);
+                    },
               child: Text(btnText),
             ),
           ],

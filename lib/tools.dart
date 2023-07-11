@@ -6,9 +6,13 @@ import 'dart:convert';
 import 'package:async/async.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:window_size/window_size.dart';
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
+
+// Models
+import 'models/connect_and_transfer_model.dart';
 
 // Init logger
 var logger = Logger();
@@ -69,6 +73,12 @@ void doesJsonFileExist() async {
     var jsonData = json.encode([]);
     jsonFile.writeAsString(jsonData);
   }
+}
+
+Future<void> updateTableData(BuildContext context) async {
+  List jsonData = await getJsonFileContents();
+  context.read<ConnectAndTransferModel>().setTableData(jsonData);
+  // context.read<ConnectAndTransferModel>
 }
 
 Future<List> getJsonFileContents() async {

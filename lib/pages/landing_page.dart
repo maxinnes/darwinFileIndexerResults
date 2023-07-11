@@ -2,7 +2,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-// import 'package:provider/provider.dart';
+import 'package:dartssh2/dartssh2.dart';
+import 'package:provider/provider.dart';
 
 // Classes
 import '../connection.dart';
@@ -203,33 +204,39 @@ class _LoadingDialogState extends State<LoadingDialog> {
   // State
   ConnectionStatus curruntStatus = ConnectionStatus.disconnected;
   List<String> messageTrace = [];
+  late SSHClient sshClient;
 
-  // TODO READ THIS
-  // https://stackoverflow.com/questions/44450758/cancel-stream-ondata
   // Issue might be todo with the "late" statement
   late StreamSubscription connectionStreamSubscription;
-
-  // void updateConnectionStatus(ConnectionStatus newStatus, String newMessage) {
-  //   setState(() {
-  //     curruntStatus = newStatus;
-  //     messageTrace.add(newMessage);
-  //   });
-  // }
 
   Future<void> startConnection() async {
     var newConnectionStream = ConnectAndTransferOperations.connectClient();
     var newConnectionStreamSubscription = newConnectionStream.listen((event) {
       var newStatus = event["connectionStatus"];
       var newMessage = event["newStatusMessage"];
-      setState(() {
-        curruntStatus = newStatus;
-        messageTrace.add(newMessage);
-      });
+      if (event.containsKey("result")) {
+        setState(() {
+          curruntStatus = newStatus;
+          messageTrace.add(newMessage);
+          sshClient = event["result"];
+        });
+      } else {
+        setState(() {
+          curruntStatus = newStatus;
+          messageTrace.add(newMessage);
+        });
+      }
     });
 
     setState(() {
       connectionStreamSubscription = newConnectionStreamSubscription;
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    startConnection();
   }
 
   @override
@@ -241,9 +248,9 @@ class _LoadingDialogState extends State<LoadingDialog> {
       userMessageLog.add(Text(message));
     }
 
-    if (curruntStatus == ConnectionStatus.disconnected) {
-      startConnection();
-    }
+    // if (curruntStatus == ConnectionStatus.disconnected) {
+    //   startConnection();
+    // }
 
     switch (curruntStatus) {
       case ConnectionStatus.disconnected:
@@ -291,6 +298,9 @@ class _LoadingDialogState extends State<LoadingDialog> {
               ElevatedButton(
                 onPressed: curruntStatus == ConnectionStatus.finished
                     ? () {
+                        context
+                            .read<ConnectAndTransferModel>()
+                            .setSshClient(sshClient);
                         Navigator.of(context).push(
                           MaterialPageRoute(
                             builder: (context) => const DashboardPage(),
@@ -298,7 +308,9 @@ class _LoadingDialogState extends State<LoadingDialog> {
                         );
                       }
                     : () {
+                        // if (connectionStreamSubscription != null) {
                         connectionStreamSubscription.cancel();
+                        // }
                         Navigator.pop(context);
                       },
                 child: curruntStatus == ConnectionStatus.finished
